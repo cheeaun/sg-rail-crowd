@@ -1,0 +1,11 @@
+name = "sg-rail-crowd"
+type = "javascript"
+
+account_id = "69ac6123a5f85c72102bb70ac9652da5"
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2021-11-02"
+
+# [secrets]
+# LTA_DATAMALL_ACCOUNT_KEY

@@ -1,0 +1,11 @@
+{
+  "name": "sg-rail-crowd",
+  "version": "1.0.0",
+  "description": "API for quering LTA's Platform Crowd Density",
+  "main": "index.js",
+  "author": "Lim Chee Aun <cheeaun@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^1.18.2"
+  }
+}
