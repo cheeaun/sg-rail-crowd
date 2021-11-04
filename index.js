@@ -114,7 +114,7 @@ async function eventHandler(event) {
         .forEach(res => {
           const { value, fault } = res.value;
           if (fault) {
-            errors.push(fault);
+            errors.push(fault.detail.errorcode);
             return;
           }
           const result = value.map(obj => toCamel(obj));
@@ -154,7 +154,7 @@ async function eventHandler(event) {
         .forEach(res => {
           const { value, fault } = res.value;
           if (fault) {
-            errors.push(fault);
+            errors.push(fault.detail.errorcode);
             return;
           }
           const result = value.map(obj => toCamel(obj));
