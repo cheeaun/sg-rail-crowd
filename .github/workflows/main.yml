@@ -10,3 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: cloudflare/wrangler-action@1.2.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
