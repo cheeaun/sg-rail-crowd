@@ -84,6 +84,8 @@ function handleOptions(request) {
 async function eventHandler(event) {
   const url = new URL(event.request.url);
   const { pathname } = url;
+  const headers = event.request.headers;
+  const userAgentStr = headers.get('User-Agent') || 'sg-rail-crowd/1.0';
 
   console.log('🚃 ' + pathname);
   let response;
@@ -95,13 +97,15 @@ async function eventHandler(event) {
     case '/forecast': {
       const responses = await Promise.allSettled(
         trainCodes.map(code => {
-          console.log('🥏 ' + code);
+          console.log('🥏 ' + API_FORECAST_URL + code);
           return fetch(API_FORECAST_URL + code, {
             headers: {
+              accept: 'application/json',
               AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
+              'User-Agent': userAgentStr,
             },
             cf: {
-              cacheTtl: 5 * 60, // seconds
+              cacheTtl: 60 * 60, // 1 hour
               cacheEverything: true,
             },
           }).then(res => res.json());
@@ -135,13 +139,15 @@ async function eventHandler(event) {
     case '/': {
       const responses = await Promise.allSettled(
         trainCodes.map(code => {
-          console.log('🥏 ' + code);
+          console.log('🥏 ' + API_URL + code);
           return fetch(API_URL + code, {
             headers: {
+              accept: 'application/json',
               AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
+              'User-Agent': userAgentStr,
             },
             cf: {
-              cacheTtl: 5 * 60, // seconds
+              cacheTtl: 5 * 60, // 5 minutes
               cacheEverything: true,
             },
           }).then(res => res.json());
