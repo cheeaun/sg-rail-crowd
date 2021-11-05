@@ -133,7 +133,10 @@ async function eventHandler(event) {
           },
         }),
       );
-      response.headers.set('Cache-Control', 'public, max-age=3600'); // 1 hour
+      response.headers.set(
+        'Cache-Control',
+        'public, max-age=3600, s-maxage=3600',
+      ); // 1 hour
       break;
     }
     case '/': {
@@ -175,7 +178,10 @@ async function eventHandler(event) {
           },
         }),
       );
-      response.headers.set('cache-control', 'public, max-age=300'); // 5 mins
+      response.headers.set(
+        'cache-control',
+        'public, max-age=300, s-maxage=300',
+      ); // 5 mins
       break;
     }
     default: {
