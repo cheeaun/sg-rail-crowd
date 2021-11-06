@@ -94,36 +94,55 @@ async function eventHandler(event) {
     case '/favicon.ico': {
       return new Response(null, { status: 204 });
     }
-    case '/forecast': {
-      const responses = await Promise.allSettled(
-        trainCodes.map(code => {
-          console.log('🥏 ' + API_FORECAST_URL + code);
-          return fetch(API_FORECAST_URL + code, {
-            headers: {
-              accept: 'application/json',
-              AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
-              'User-Agent': userAgentStr,
-            },
-            cf: {
-              cacheTtl: 60 * 60, // 1 hour
-              cacheEverything: true,
-            },
-          }).then(res => res.json());
-        }),
+    case '/testForecast': {
+      const data = await fetch(API_FORECAST_URL + 'CCL', {
+        headers: {
+          accept: 'application/json',
+          AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
+          'User-Agent': userAgentStr,
+        },
+      }).then(res => res.json());
+      const bin = await fetch('https://httpbin.org/get').then(res =>
+        res.json(),
       );
-      const results = [];
+      const response = new Response(JSON.stringify({ data, bin }));
+      response.headers.set('Content-Type', 'application/json');
+      return response;
+    }
+    case '/forecast': {
+      const results = JSON.parse(await CACHE.get('forecast')) || [];
       const errors = [];
-      responses
-        .filter(res => res.status === 'fulfilled')
-        .forEach(res => {
-          const { value, fault } = res.value;
-          if (fault) {
-            errors.push(fault.detail.errorcode);
-            return;
-          }
-          const result = value.map(obj => toCamel(obj));
-          results.push(...result);
-        });
+      let cacheHit = true;
+      if (!results || !results.length) {
+        cacheHit = false;
+        const responses = await Promise.allSettled(
+          trainCodes.map((code, i) => {
+            return new Promise(resolve => setTimeout(resolve, 2000 * i)).then(
+              () => {
+                console.log('🥏 ' + API_FORECAST_URL + code);
+                return fetch(API_FORECAST_URL + code, {
+                  headers: {
+                    accept: 'application/json',
+                    AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
+                    'User-Agent': userAgentStr,
+                  },
+                }).then(res => res.json());
+              },
+            );
+          }),
+        );
+        responses
+          .filter(res => res.status === 'fulfilled')
+          .forEach(res => {
+            const { value, fault } = res.value;
+            if (fault) {
+              errors.push(fault.detail.errorcode);
+              return;
+            }
+            const result = value.map(obj => toCamel(obj));
+            results.push(...result);
+          });
+      }
       response = new Response(
         JSON.stringify({
           data: results,
@@ -137,38 +156,46 @@ async function eventHandler(event) {
         'Cache-Control',
         'public, max-age=3600, s-maxage=3600',
       ); // 1 hour
+      response.headers.set('X-Cache', cacheHit ? 'HIT' : 'MISS');
+      if (!errors.length) {
+        event.waitUntil(
+          CACHE.put('forecast', JSON.stringify(results), {
+            expirationTtl: 3600,
+          }),
+        );
+      }
       break;
     }
     case '/': {
-      const responses = await Promise.allSettled(
-        trainCodes.map(code => {
-          console.log('🥏 ' + API_URL + code);
-          return fetch(API_URL + code, {
-            headers: {
-              accept: 'application/json',
-              AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
-              'User-Agent': userAgentStr,
-            },
-            cf: {
-              cacheTtl: 5 * 60, // 5 minutes
-              cacheEverything: true,
-            },
-          }).then(res => res.json());
-        }),
-      );
-      const results = [];
+      const results = JSON.parse(await CACHE.get('realtime')) || [];
       const errors = [];
-      responses
-        .filter(res => res.status === 'fulfilled')
-        .forEach(res => {
-          const { value, fault } = res.value;
-          if (fault) {
-            errors.push(fault.detail.errorcode);
-            return;
-          }
-          const result = value.map(obj => toCamel(obj));
-          results.push(...result);
-        });
+      let cacheHit = true;
+      if (!results || !results.length) {
+        cacheHit = false;
+        const responses = await Promise.allSettled(
+          trainCodes.map(code => {
+            console.log('🥏 ' + API_URL + code);
+            return fetch(API_URL + code, {
+              headers: {
+                accept: 'application/json',
+                AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
+                'User-Agent': userAgentStr,
+              },
+            }).then(res => res.json());
+          }),
+        );
+        responses
+          .filter(res => res.status === 'fulfilled')
+          .forEach(res => {
+            const { value, fault } = res.value;
+            if (fault) {
+              errors.push(fault.detail.errorcode);
+              return;
+            }
+            const result = value.map(obj => toCamel(obj));
+            results.push(...result);
+          });
+      }
       response = new Response(
         JSON.stringify({
           data: results,
@@ -182,6 +209,14 @@ async function eventHandler(event) {
         'cache-control',
         'public, max-age=300, s-maxage=300',
       ); // 5 mins
+      response.headers.set('x-cache', cacheHit ? 'HIT' : 'MISS');
+      if (!errors.length) {
+        event.waitUntil(
+          CACHE.put('realtime', JSON.stringify(results), {
+            expirationTtl: 300,
+          }),
+        );
+      }
       break;
     }
     default: {
