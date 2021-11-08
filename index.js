@@ -158,9 +158,13 @@ async function eventHandler(event) {
       ); // 1 hour
       response.headers.set('X-Cache', cacheHit ? 'HIT' : 'MISS');
       if (!errors.length) {
+        // Tomorrow at 12AM SGT timezone, in epoch seconds
+        const expiration = new Date(
+          new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000,
+        ).getTime();
         event.waitUntil(
           CACHE.put('forecast', JSON.stringify(results), {
-            expirationTtl: 3600,
+            expiration,
           }),
         );
       }
