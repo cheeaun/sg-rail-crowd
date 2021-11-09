@@ -15,9 +15,9 @@ const trainCodes = [
   'PLRT',
 ];
 
-const KEYS = LTA_DATAMALL_ACCOUNT_KEY.split(' ');
 let apiKeyIndex = 0;
 const apiKey = () => {
+  const KEYS = LTA_DATAMALL_ACCOUNT_KEY.split(' ');
   apiKeyIndex = (apiKeyIndex + 1) % KEYS.length;
   console.log('API key index', apiKeyIndex);
   return KEYS[apiKeyIndex];
