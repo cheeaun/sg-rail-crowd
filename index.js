@@ -142,6 +142,17 @@ async function eventHandler(event) {
             const result = value.map(obj => toCamel(obj));
             results.push(...result);
           });
+        if (!errors.length) {
+          // Tomorrow at 12AM SGT timezone, in epoch seconds
+          const expiration = new Date(
+            new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000,
+          ).getTime();
+          event.waitUntil(
+            CACHE.put('forecast', JSON.stringify(results), {
+              expiration,
+            }),
+          );
+        }
       }
       response = new Response(
         JSON.stringify({
@@ -152,22 +163,8 @@ async function eventHandler(event) {
           },
         }),
       );
-      response.headers.set(
-        'Cache-Control',
-        'public, max-age=3600, s-maxage=3600',
-      ); // 1 hour
-      response.headers.set('X-Cache', cacheHit ? 'HIT' : 'MISS');
-      if (!errors.length) {
-        // Tomorrow at 12AM SGT timezone, in epoch seconds
-        const expiration = new Date(
-          new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000,
-        ).getTime();
-        event.waitUntil(
-          CACHE.put('forecast', JSON.stringify(results), {
-            expiration,
-          }),
-        );
-      }
+      response.headers.set('Cache-Control', 'public, max-age=3600'); // 1 hour
+      response.headers.set('x-kv-cache', cacheHit ? 'HIT' : 'MISS');
       break;
     }
     case '/': {
@@ -199,6 +196,13 @@ async function eventHandler(event) {
             const result = value.map(obj => toCamel(obj));
             results.push(...result);
           });
+        if (!errors.length) {
+          event.waitUntil(
+            CACHE.put('realtime', JSON.stringify(results), {
+              expirationTtl: 300,
+            }),
+          );
+        }
       }
       response = new Response(
         JSON.stringify({
@@ -209,18 +213,8 @@ async function eventHandler(event) {
           },
         }),
       );
-      response.headers.set(
-        'cache-control',
-        'public, max-age=300, s-maxage=300',
-      ); // 5 mins
-      response.headers.set('x-cache', cacheHit ? 'HIT' : 'MISS');
-      if (!errors.length) {
-        event.waitUntil(
-          CACHE.put('realtime', JSON.stringify(results), {
-            expirationTtl: 300,
-          }),
-        );
-      }
+      response.headers.set('cache-control', 'public, max-age=300'); // 5 mins
+      response.headers.set('x-kv-cache', cacheHit ? 'HIT' : 'MISS');
       break;
     }
     default: {
