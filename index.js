@@ -15,6 +15,39 @@ const trainCodes = [
   'PLRT',
 ];
 
+const KEYS = LTA_DATAMALL_ACCOUNT_KEY.split(' ');
+let apiKeyIndex = 0;
+const apiKey = () => {
+  apiKeyIndex = (apiKeyIndex + 1) % KEYS.length;
+  console.log('API key index', apiKeyIndex);
+  return KEYS[apiKeyIndex];
+};
+
+const apiFetch = async url => {
+  console.log('🥏 ' + url);
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: 'application/json',
+        AccountKey: apiKey(),
+      },
+    }).then(res => res.json());
+    if (response.fault) {
+      throw new Error(response.fault);
+    }
+    return response;
+  } catch (e) {
+    console.log('♻️ ' + url);
+    const response = await fetch(url, {
+      headers: {
+        accept: 'application/json',
+        AccountKey: apiKey(),
+      },
+    }).then(res => res.json());
+    return response;
+  }
+};
+
 // https://stackoverflow.com/a/26215431
 function toCamel(o) {
   var newO, origKey, newKey, value;
@@ -84,8 +117,6 @@ function handleOptions(request) {
 async function eventHandler(event) {
   const url = new URL(event.request.url);
   const { pathname } = url;
-  const headers = event.request.headers;
-  const userAgentStr = headers.get('User-Agent') || 'sg-rail-crowd/1.0';
 
   console.log('🚃 ' + pathname);
   let response;
@@ -95,13 +126,7 @@ async function eventHandler(event) {
       return new Response(null, { status: 204 });
     }
     case '/testForecast': {
-      const data = await fetch(API_FORECAST_URL + 'CCL', {
-        headers: {
-          accept: 'application/json',
-          AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
-          'User-Agent': userAgentStr,
-        },
-      }).then(res => res.json());
+      const data = await apiFetch(API_FORECAST_URL + 'CCL');
       const bin = await fetch('https://httpbin.org/get').then(res =>
         res.json(),
       );
@@ -119,14 +144,7 @@ async function eventHandler(event) {
           trainCodes.map((code, i) => {
             return new Promise(resolve => setTimeout(resolve, 2000 * i)).then(
               () => {
-                console.log('🥏 ' + API_FORECAST_URL + code);
-                return fetch(API_FORECAST_URL + code, {
-                  headers: {
-                    accept: 'application/json',
-                    AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
-                    'User-Agent': userAgentStr,
-                  },
-                }).then(res => res.json());
+                return apiFetch(API_FORECAST_URL + code);
               },
             );
           }),
@@ -175,14 +193,7 @@ async function eventHandler(event) {
         cacheHit = false;
         const responses = await Promise.allSettled(
           trainCodes.map(code => {
-            console.log('🥏 ' + API_URL + code);
-            return fetch(API_URL + code, {
-              headers: {
-                accept: 'application/json',
-                AccountKey: LTA_DATAMALL_ACCOUNT_KEY,
-                'User-Agent': userAgentStr,
-              },
-            }).then(res => res.json());
+            return apiFetch(API_URL + code);
           }),
         );
         responses
