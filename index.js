@@ -199,7 +199,7 @@ async function eventHandler(event) {
         if (!errors.length) {
           event.waitUntil(
             CACHE.put('realtime', JSON.stringify(results), {
-              expirationTtl: 300,
+              expirationTtl: 150,
             }),
           );
         }
@@ -213,7 +213,7 @@ async function eventHandler(event) {
           },
         }),
       );
-      response.headers.set('cache-control', 'public, max-age=300'); // 5 mins
+      response.headers.set('cache-control', 'public, max-age=60'); // 1 min
       response.headers.set('x-kv-cache', cacheHit ? 'HIT' : 'MISS');
       break;
     }
