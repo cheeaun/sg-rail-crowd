@@ -199,7 +199,7 @@ async function eventHandler(event) {
         if (!errors.length) {
           event.waitUntil(
             CACHE.put('realtime', JSON.stringify(results), {
-              expirationTtl: 150,
+              expirationTtl: 300,
             }),
           );
         }
