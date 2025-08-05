@@ -11,5 +11,8 @@ kv_namespaces = [
    { binding = "CACHE", preview_id = "d21f3cc8750a4821a53bea52ed274308", id = "b70c3ffffca84d4780625e7f22e4cc77" }
 ]
 
+[observability]
+enabled = true
+
 # [secrets]
 # LTA_DATAMALL_ACCOUNT_KEY
