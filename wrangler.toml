@@ -1,5 +1,6 @@
 name = "sg-rail-crowd"
 type = "javascript"
+main = "index.js"
 
 account_id = "69ac6123a5f85c72102bb70ac9652da5"
 workers_dev = true
