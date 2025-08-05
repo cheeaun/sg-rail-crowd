@@ -13,6 +13,7 @@ const trainCodes = [
   'BPL',
   'SLRT',
   'PLRT',
+  'TEL',
 ];
 
 let apiKeyIndex = 0;
