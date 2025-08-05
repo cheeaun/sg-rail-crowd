@@ -1,7 +1,7 @@
 const API_URL =
-  'http://datamall2.mytransport.sg/ltaodataservice/PCDRealTime?TrainLine=';
+  'https://datamall2.mytransport.sg/ltaodataservice/PCDRealTime?TrainLine=';
 const API_FORECAST_URL =
-  'http://datamall2.mytransport.sg/ltaodataservice/PCDForecast?TrainLine=';
+  'https://datamall2.mytransport.sg/ltaodataservice/PCDForecast?TrainLine=';
 const trainCodes = [
   'CCL',
   'CEL',
