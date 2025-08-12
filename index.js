@@ -38,6 +38,7 @@ const apiFetch = async url => {
     }
     return response;
   } catch (e) {
+    console.log(e);
     console.log('♻️ ' + url);
     const response = await fetch(url, {
       headers: {
